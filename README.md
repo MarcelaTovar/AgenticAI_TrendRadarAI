@@ -128,3 +128,63 @@ python agent.py
 ```
 
 Opciones disponibles al ejecutar:
+'Dame 3 temas virales para elegir' (o escribe 'Opción 1')
+'Escoge tú el tema más viral' (o escribe 'Opción 2')
+'Investiga sobre [Tu tema]'
+
+
+### Consultar métricas de rendimiento agregadas
+
+```bash
+curl http://localhost:8000/api/metrics/summary
+```
+
+O desde la interfaz, mediante el ícono de gráfica de barras en el header.
+
+### Correr la evaluación offline de calidad
+
+Con el backend habiendo generado al menos un reporte (esto crea `reports_archive.jsonl` automáticamente):
+
+```bash
+python evaluate_batch.py
+```
+
+Esto genera `evaluation_results.jsonl` con la puntuación de fidelidad, relevancia y completitud de cada reporte evaluado, además de un resumen agregado impreso en consola.
+
+---
+
+## Archivos generados en tiempo de ejecución
+
+| Archivo | Contenido |
+|---|---|
+| `metrics_log.jsonl` | Métricas de rendimiento por ejecución (latencia, tokens, tasas de éxito). |
+| `reports_archive.jsonl` | Contenido completo de cada reporte generado, para evaluación offline. |
+| `evaluation_results.jsonl` | Resultados de la evaluación de calidad por lote (LLM-as-judge). |
+| `approval_log.jsonl` | Registro de aprobaciones humanas confirmadas desde el frontend. |
+
+---
+
+## Consideraciones éticas
+
+Este proyecto incorpora salvaguardas diseñadas para mitigar dos riesgos identificados durante el desarrollo:
+
+1. **Error no detectado**: el sistema de verificación no es infalible; se documentó un caso real de alucinación (datos e información fabricada con apariencia de fuente verificada) durante las pruebas, disponible como evidencia en `reports_archive.jsonl`.
+2. **Engaño de origen**: riesgo de que el público confunda contenido generado por IA con la opinión genuina y espontánea de una persona.
+
+Las medidas de mitigación (disclosure, log de procedencia, aprobación humana obligatoria y etiquetado inseparable) se diseñaron en línea con los principios de transparencia y trazabilidad del **Artículo 50 de la Ley de IA de la Unión Europea**.
+
+Para más detalle, ver `documentacion_trendradar_ai.md`.
+
+---
+
+## Limitaciones conocidas
+
+- La verificación de datos depende de la calidad de los resultados de búsqueda de DuckDuckGo, que puede fallar por rate-limiting.
+- El modelo evaluador local (`llama3.2:3b`) tiene menor capacidad de juicio matizado que modelos más grandes; se recomienda `qwen2.5:7b` si el hardware lo permite y se busca mayor precisión en la detección de alucinaciones.
+- El sistema no bloquea automáticamente la publicación de contenido con baja puntuación de fidelidad; la evaluación es informativa/offline, no un filtro en el camino crítico.
+
+---
+
+## Autora
+
+Marcela Tovar — Ingeniería en Ciencia de Datos e Inteligencia Artificial, UNITEC.
